@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html class="w-full overflow-x-hidden">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zara-Awe Application</title>
+    
+    <script src="https://kit.fontawesome.com/f9fbf97c33.js" crossorigin="anonymous"></script>
+    <!-- Fonts -->
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <!-- Boxicons CSS -->
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+    <script src="https://cdn.jsdelivr.net/npm/boxicons@2.1.0/dist/boxicons.min.js"></script>
+
+    <!-- WOW.js Initialization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.min.js"></script>
+ 
+</head>
+
+
+<body style="overflow:hidden" class="dark font-open-sans font-normal relative">
+
+    <nav class="sidebar close">
+        <header>
+            <div class="image-text">
+                <span class="image">
+                    <img src="images/logo.png" alt="">
+                </span>
+                <div class="text logo-text">
+                    <span class="name">Zara Application</span>
+                    <span id="typed-text" class="profession whitespace-normal">With ease to empower your work</span>
+                </div>
+            </div>
+            <i class='bx bx-chevron-right toggle' style="display: none;"></i>
+        </header>
+
+        <div class="menu-bar">
+            <div class="menu">
+                <li class="search-box">
+                    <i class='bx bx-search icon'></i>
+                    <input type="text" placeholder="Search...">
+                </li>
+                <ul class="menu-links">
+                    <li class="nav-link">
+                        <a href="#home">
+                            <i class='bx bx-video-recording icon'></i>
+                            <span class="text nav-text">Screen Recorder</span>
+                        </a>
+                    </li>
+                    <li class="nav-link">
+                        <a href="#">
+                            <i class='bx bxs-videos icon'></i>
+                            <span class="text nav-text">Video Converter</span>
+                        </a>
+                    </li>
+                    <li class="nav-link">
+                        <a href="#">
+                            <i class='bx bx-note icon'></i>
+                            <span class="text nav-text">Notes Plus</span>
+                        </a>
+                    </li>
+                    <li class="nav-link">
+                        <a href="#">
+                            <i class='bx bx-pie-chart-alt icon'></i>
+                            <span class="text nav-text">Analytics</span>
+                        </a>
+                    </li>
+                    <li class="nav-link">
+                        <a href="#">
+                            <i class='bx bx-color-fill icon'></i>
+                            <span class="text nav-text">Color Picker</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-link">
+                        <a href="#">
+                            <i class='bx bx-music icon'></i>
+                            <span class="text nav-text">Music Downloader</span>
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+
+            <div class="bottom-content">
+                <li class="mode">
+                    <div class="sun-moon">
+                        <i class='bx bx-moon icon moon'></i>
+                        <i class='bx bx-sun icon sun'></i>
+                    </div>
+                    <span class="mode-text text">Dark mode</span>
+                    <div class="toggle-switch">
+                        <span class="switch"></span>
+                    </div>
+                </li>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Home section -->
+    <section id="home"
+        class="home  h-auto max-w-full bg-[#111827] bg-cover bg-center flex items-center justify-center text-center min-h-screen">
+
+        <div class="container mx-auto">
+            <div class="row">
+                <div class="col-md-12 col-sm-12">
+                    <h2 class="wow fadeInDown text-gray-500 text-2xl leading-10 tracking-wider pb-3 font-bold"
+                        data-wow-delay="0.2s">With ease to empower your work.</h2>
+                    <h1 id="appName" style="display: none;"
+                        class="wow fadeInDown text-2xl md:text-5xl font-semibold text-white">⏺ Screen Recorder</h1>
+                    <div class="wow backInDown  rounded-md  p-8 m-16 flex justify-center items-center fadeInDown"
+                        id="boardline" style="display: none;">
+                        <div class="flex justify-center gap-4">
+                            <button id="videoSelectBtn" style="display: none;"
+                                class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg md:text-xl wow fadeInLeft">
+                                <i class="fas fa-video "></i> Choose a Video Source
+                            </button>
+                        
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="videoPlayer" class="home video-player bg-gray-200 max-h-full flex flex-col justify-center items-center mx-auto py-2 p-8" style="height: 100vh; display: none;">
+        <div class="btn mx-auto py-4">
+          <button id="videoSourseBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg" hidden></button>
+        </div>
+      
+        <div class="video-container rounded-lg" id="videoContainer">
+            <video class="max-w-full h-full rounded-lg" id="Video"></video>
+        </div>
+      
+      
+        <div class="mt-4 my-4 flex justify-center items-center" id="recordtn">
+          <button id="startBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded mr-4">
+            <i class="fas fa-play"></i> Start Recording
+          </button>
+          <button id="stopBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded">
+            <i class="fas fa-stop"></i> Stop Recording
+          </button>
+        </div>
+      </section>
+      
+      <script defer src="render.js"></script>
+
+</body>
+
+</html>
