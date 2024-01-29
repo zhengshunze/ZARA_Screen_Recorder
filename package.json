@@ -4,6 +4,21 @@
   "version": "1.0.0",
   "description": "A simple and streamlined application for all your everyday needs",
   "main": "src/index.js",
+  "build": {
+    "appId": "com.zheng.app",
+    "icon": "./app.ico",
+    "asar": true,
+    "asarUnpack": ["exeFiles"],
+    "extraFiles": [
+      {
+        "from": "bin",
+        "to": "./bin" 
+      }
+    ],
+    "files": [
+      "!node_modules/@ffmpeg-installer/**/*"
+    ]
+  },
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
