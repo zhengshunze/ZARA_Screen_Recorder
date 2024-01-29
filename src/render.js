@@ -21,7 +21,7 @@ const desktopCapturer = {
 
 
 // Get the path to the directory containing the app
-const appPath = app.getAppPath();
+const appPath = remote.app.getAppPath();
 
 // Get the parent directory of the app directory
 const parentDirectory = path.dirname(appPath);
