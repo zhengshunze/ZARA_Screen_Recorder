@@ -23,7 +23,7 @@ const createWindow = () => {
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
-  // mainWindow.webContents.openDevTools();
+ // mainWindow.webContents.openDevTools();
 
   ipcMain.on('selected-area-data', (event, data) => {
     mainWindow.webContents.send('selected-area-data-updated', data);
