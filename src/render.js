@@ -1,6 +1,16 @@
 // Initialize WOW.js
 new WOW().init();
 
+
+// File system modules
+const { writeFile} = require('fs');
+const { promises: fs } = require("fs");
+const path = require("path");
+
+// Remote module for Electron
+const remote = require('@electron/remote');
+const { dialog, Menu } = remote;
+
 // Electron modules
 const { ipcRenderer } = require('electron');
 
@@ -9,21 +19,31 @@ const desktopCapturer = {
   getSources: (opts) => ipcRenderer.invoke('DESKTOP_CAPTURER_GET_SOURCES', opts)
 };
 
-// Path to FFmpeg binary
-const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 
-// Fluent-ffmpeg module
-const ffmpeg = require('fluent-ffmpeg');
-ffmpeg.setFfmpegPath(ffmpegPath);
+// Get the path to the directory containing the app
+const appPath = app.getAppPath();
 
-// File system modules
-const { writeFile} = require('fs');
-const { promises: fs } = require("fs");
+// Get the parent directory of the app directory
+const parentDirectory = path.dirname(appPath);
 
-// Remote module for Electron
-const remote = require('@electron/remote');
-const { dialog, Menu } = remote;
+// Construct the path to the ffmpeg executable
+const ffmpegPath = path.join(parentDirectory, '..', 'bin', 'ffmpeg.exe');
 
+console.log('FFmpeg Path:', ffmpegPath, "load successfully.");
+
+// Check if the ffmpeg executable exists
+fs.access(ffmpegPath, fs.constants.F_OK)
+    .then(() => {
+        // If the file exists, set the FFmpeg path
+        const ffmpeg = require('fluent-ffmpeg');
+        ffmpeg.setFfmpegPath(ffmpegPath);
+
+
+    })
+    .catch((err) => {
+        // If the file does not exist or is not accessible, display an error message
+        console.error('FFmpeg file does not exist or is not accessible:', err);
+    });
 // Variables for UI elements
 let menuTimeout;
 let mediaRecorder;
