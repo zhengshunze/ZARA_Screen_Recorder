@@ -1,6 +1,8 @@
+
+let debugMode = true;
+
 // Initialize WOW.js
 new WOW().init();
-
 
 // File system modules
 const { writeFile} = require('fs');
@@ -19,6 +21,7 @@ const desktopCapturer = {
   getSources: (opts) => ipcRenderer.invoke('DESKTOP_CAPTURER_GET_SOURCES', opts)
 };
 
+const ffmpeg = require('fluent-ffmpeg');
 
 // Get the path to the directory containing the app
 const appPath = remote.app.getAppPath();
@@ -27,26 +30,32 @@ const appPath = remote.app.getAppPath();
 const parentDirectory = path.dirname(appPath);
 
 // Construct the path to the ffmpeg executable
-const ffmpegPath = path.join(parentDirectory, '..', 'bin', 'ffmpeg.exe');
+const local_ffmpegPath  = path.join(parentDirectory, '..', 'bin', 'ffmpeg.exe');
+const debug_ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 
-console.log('FFmpeg Path:', ffmpegPath, "load successfully.");
+const ffmpegPath = debugMode ? debug_ffmpegPath : local_ffmpegPath;
 
 // Check if the ffmpeg executable exists
 fs.access(ffmpegPath, fs.constants.F_OK)
     .then(() => {
         // If the file exists, set the FFmpeg path
-        const ffmpeg = require('fluent-ffmpeg');
         ffmpeg.setFfmpegPath(ffmpegPath);
-
-
     })
     .catch((err) => {
         // If the file does not exist or is not accessible, display an error message
         console.error('FFmpeg file does not exist or is not accessible:', err);
+    })
+    .finally(() => {
+        console.log('FFmpeg Path:', ffmpegPath, "loaded successfully.");
+        
     });
+
 // Variables for UI elements
 let menuTimeout;
 let mediaRecorder;
+let startTime;
+let elapsedTimeInSeconds = 0;
+
 const recordedChunks = [];
 
 
@@ -55,13 +64,15 @@ function removeInlineStyles(element) {
   element.removeAttribute('style');
 }
 
+
+
 // Event listener for start recording button
 startBtn.onclick = e => {
   if (mediaRecorder.state !== 'recording') {
-
-  mediaRecorder.start();
-  startBtn.classList.add('is-danger');
-  startBtn.innerHTML = '<i class="fa-solid fa-circle fa-beat-fade fa-xs" style="color: #d5203b;"></i> Recording ... ';
+    startTime = new Date();
+    mediaRecorder.start();
+    startBtn.classList.add('is-danger');
+    startBtn.innerHTML = '<i class="fa-solid fa-circle fa-beat-fade fa-xs" style="color: #d5203b;"></i> Recording ... ';
   } else{
     console.log('MediaRecorder is already recording.');
   }
@@ -72,7 +83,12 @@ stopBtn.onclick = e => {
   mediaRecorder.stop();
   startBtn.classList.remove('is-danger');
   startBtn.innerHTML = '<i class="fas fa-play"></i> Start Recording';
-};
+  elapsedTimeInSeconds = Math.floor((new Date() - startTime) / 1000);
+
+  if (elapsedTimeInSeconds < 1) {
+      alert("Recording time is too short!");
+  };
+}
 
 // Event listener for selecting video sources
 videoSelectBtn.onclick = getVideoSources;
@@ -154,7 +170,7 @@ async function selectSource(source) {
   mediaRecorder.ondataavailable = handleDataAvailable;
   mediaRecorder.onstop = handleStop;
 
-
+  
 
 }
 
@@ -171,69 +187,113 @@ async function handleStop(e) {
       type: 'video/webm;codecs=vp9'
   });
 
-  // Show save dialog for the recorded video
-  const { filePath } = await dialog.showSaveDialog({
-      buttonLabel: 'Save video',
-      defaultPath: `vid-${Date.now()}`
-  });
-
-  // If no file path selected, return
-  if (!filePath) {
-      return;
-  }
-
-  try {
-      // Convert blob to buffer
-      const buffer = Buffer.from(await blob.arrayBuffer());
-      
-      // Write buffer to file
-      writeFile(filePath, buffer, async (err) => {
-      if (err) {
-        console.error('Error saving file:', err);
-        return;
-      }
-      
-      try {
-        // Convert WebM to MP4
-        await convertWebMToMP4(filePath);
-        console.log('WEBM to MP4 successfully');
-
-        // Delete WebM file
-        fs.unlink(filePath);
-        console.log('Delete  WebM file');
-      } catch (error) {
-        console.error('Error converting file:', error);
-      }
+ 
+  if(elapsedTimeInSeconds > 1) {
+    // Show save dialog for the recorded video
+    const { filePath } = await dialog.showSaveDialog({
+        buttonLabel: 'Save video',
+        defaultPath: `vid-${Date.now()}.webm`
     });
-  } catch (error) {
-      console.error('Error saving file:', error);
+  
+    // If no file path selected, return
+    if (!filePath) {
+        return;
+    }
+  
+    try {
+        // Convert blob to buffer
+        const buffer = Buffer.from(await blob.arrayBuffer());
+        
+        // Write buffer to file
+        writeFile(filePath, buffer, async (err) => {
+        if (err) {
+          console.error('Error saving file:', err);
+          return;
+        }
+        
+        // try {
+        //   // Convert WebM to MP4
+        //   await convertWebMToMP4(filePath);
+        //   console.log('WEBM to MP4 successfully');
+  
+        //   // Delete WebM file
+        //   fs.unlink(filePath);
+        //   console.log('Delete  WebM file');
+        // } catch (error) {
+        //   console.error('Error converting file:', error);
+        // }
+  
+      });
+  
+    } catch (error) {
+        console.error('Error saving file:', error);
+    }
+    // Clear recorded chunks
+    recordedChunks.length = 0;
+    
+    // `filePath` parameter is the file path of the video
+    // `elapsedTimeInSeconds` is the elapsed time in seconds
+    await convertWebMToMP4(filePath, elapsedTimeInSeconds);
   }
-  // Clear recorded chunks
-  recordedChunks.length = 0;
   
 }
+const mainWindow = remote.getCurrentWindow();
 
 // Function to convert WebM to MP4
-function convertWebMToMP4(filePath) {
-  return new Promise((resolve, reject) => {
-      console.log(filePath)
-      ffmpeg(filePath)
-          .outputOptions('-c:v', 'libx264')
-          .outputOptions('-preset', 'medium')
-          .outputOptions('-crf', '23')
-          .outputOptions('-c:a', 'aac')
-          .outputOptions('-strict', 'experimental')
-          .output(`${filePath}.mp4`)
-          .on('end', () => {
-              resolve();
-             
-          })
-          .on('error', (err) => {
-              reject(err);
-          })
-          .run();
-  });
+async function convertWebMToMP4(inputFilePath,elapsedTimeInSeconds) {
+  // Replace the input WebM video file path with the corresponding MP4 video file path
+  const outputFilePath = inputFilePath.replace('.webm', '.mp4'); 
+  console.log(outputFilePath)
+  document.getElementById('programBox').classList.remove('hidden');
+
+  // Use FFmpeg to process the input WebM video
+  var command = ffmpeg(inputFilePath)
+    .outputOptions('-c:v', 'libx264')
+    .outputOptions('-preset', 'ultrafast')
+    .outputOptions('-crf', '23')
+    .outputOptions('-c:a', 'aac')
+    .outputOptions('-strict', 'experimental')
+    .on('progress', function(progress) {
+
+      programCancelBtn.onclick = function() {
+        command.kill();
+        document.getElementById('programBox').classList.add('hidden');
+        console.log('Processing killed!');
+      };
+
+      const timemark = parseInt(progress.timemark.replace(/:/g, ''))
+      if (!isNaN(timemark) && timemark > 0 && timemark <= elapsedTimeInSeconds) {
+        const percent = (timemark / elapsedTimeInSeconds) * 100;
+        const progressMessage = 'Processing: ' + (percent >= 99.5 ? '100' : percent.toFixed(2)) + '%';
+        
+        document.querySelector('#programBox p').textContent = progressMessage;
+        
+      }
+      else{
+        document.querySelector('#programBox p').textContent = "Processing: 0 %"
+      }
+
+      
+ 
+    })
+    .on('start', function() {
+      document.querySelector('#programBox p').textContent = "Processing: 0 %"
+    })
+    .on('end', function() {
+      console.log('Processing finished !');
+      document.querySelector('#programBox p').textContent = "Processing: 100 %"
+      document.getElementById('programBox').classList.add('hidden');
+
+
+    })
+    .on('error', function(err) {
+      console.log('An error occurred: ' + err.message);
+    })
+    .save(outputFilePath);
 }
+
+
+
 
 const body = document.querySelector('body'),
     sidebar = body.querySelector('nav'),
