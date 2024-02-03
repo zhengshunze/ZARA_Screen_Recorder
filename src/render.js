@@ -287,6 +287,7 @@ async function convertWebMToMP4(inputFilePath,elapsedTimeInSeconds) {
 
     })
     .on('error', function(err) {
+      document.querySelector('#programBox p').textContent = "Processing: 0 %"
       console.log('An error occurred: ' + err.message);
     })
     .save(outputFilePath);
